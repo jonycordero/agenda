@@ -31,61 +31,48 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public TaskResponseDto save(TaskRequestDto taskRequestDto) {
-
-
-        Task task = convertirTask(taskRequestDto);
-
-        Task savedTask = taskRepository.save(task);
-
-        TaskResponseDto taskResponseDto = toTaskResponseDto(savedTask);
-
-        return taskResponseDto;
+        return toTaskResponseDto(taskRepository.save(toTask(taskRequestDto)));
     }
 
     @Override
     public void delete(Long id) {
-        taskRepository.deleteById(id);
+        //return taskRepository.findById(id).stream().peek(task -> {
+            taskRepository.deleteById(id);
+        //});
     }
 
     @Override
     public TaskResponseDto updateTask(Long id, TaskRequestDto taskRequest) {
-
-        Optional<Task> task = taskRepository.findById(id);
-        if (task.isPresent()) {
-            Task taskToUpdate = task.get();
-            taskToUpdate.setTitle(taskRequest.title());
-            taskToUpdate.setDescription(taskRequest.description());
-            taskToUpdate.setCompleted(taskRequest.completed());
-            return toTaskResponseDto(taskRepository.save(taskToUpdate));
-        }
-        return null;
+        return taskRepository.findById(id).map(task -> {
+            task.setTitle(taskRequest.title());
+            task.setDescription(taskRequest.description());
+            task.setCompleted(taskRequest.completed());
+            return toTaskResponseDto(taskRepository.save(task));
+        }).orElseThrow(() -> new RuntimeException("Task not found"));
     }
 
     @Override
     public TaskResponseDto patchTask(Long id, TaskRequestDto taskRequest) {
+        return taskRepository.findById(id).map(task -> {
 
-        Optional<Task> task = taskRepository.findById(id);
-        if (task.isPresent()) {
-            Task taskToUpdate = task.get();
             if (taskRequest.title() != null) {
-                taskToUpdate.setTitle(taskRequest.title());
+                task.setTitle(taskRequest.title());
             }
             if (taskRequest.description() != null) {
-                taskToUpdate.setDescription(taskRequest.description());
+                task.setDescription(taskRequest.description());
             }
-            if (taskRequest.completed() != null){
-                taskToUpdate.setCompleted(taskRequest.completed());
+            if (taskRequest.completed() != null) {
+                task.setCompleted(taskRequest.completed());
             }
-            return toTaskResponseDto(taskRepository.save(taskToUpdate));
-        }
-        return null;
+            return toTaskResponseDto(taskRepository.save(task));
+        }).orElseThrow(() -> new RuntimeException("Task not found"));
     }
 
     private TaskResponseDto toTaskResponseDto(Task task) {
         return new TaskResponseDto(task.getId(), task.getTitle(), task.getDescription(), task.isCompleted());
     }
 
-    private Task convertirTask(TaskRequestDto taskRequestDto) {
+    private Task toTask(TaskRequestDto taskRequestDto) {
         Task task = new Task();
         task.setTitle(taskRequestDto.title());
         task.setDescription(taskRequestDto.description());
