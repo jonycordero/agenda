@@ -4,6 +4,7 @@ import com.example.agenda.controller.dto.TaskRequestDto;
 import com.example.agenda.controller.dto.TaskResponseDto;
 import com.example.agenda.repository.TaskRepository;
 import com.example.agenda.repository.model.Task;
+import com.example.agenda.service.mapper.TaskMapper;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,6 +16,7 @@ import java.util.Optional;
 public class TaskServiceImpl implements TaskService {
 
     private final TaskRepository taskRepository;
+    private final TaskMapper taskMapper;
 
     @Override
     public List<TaskResponseDto> findAll() {
@@ -31,7 +33,7 @@ public class TaskServiceImpl implements TaskService {
 
     @Override
     public TaskResponseDto save(TaskRequestDto taskRequestDto) {
-        return toTaskResponseDto(taskRepository.save(toTask(taskRequestDto)));
+        return taskMapper.toTaskResponseDto(taskRepository.save(taskMapper.toTask(taskRequestDto)));
     }
 
     @Override
@@ -47,7 +49,7 @@ public class TaskServiceImpl implements TaskService {
             task.setTitle(taskRequest.title());
             task.setDescription(taskRequest.description());
             task.setCompleted(taskRequest.completed());
-            return toTaskResponseDto(taskRepository.save(task));
+            return taskMapper.toTaskResponseDto(taskRepository.save(task));
         }).orElseThrow(() -> new RuntimeException("Task not found"));
     }
 
@@ -64,21 +66,13 @@ public class TaskServiceImpl implements TaskService {
             if (taskRequest.completed() != null) {
                 task.setCompleted(taskRequest.completed());
             }
-            return toTaskResponseDto(taskRepository.save(task));
+            return taskMapper.toTaskResponseDto(taskRepository.save(task));
         }).orElseThrow(() -> new RuntimeException("Task not found"));
     }
 
-    private TaskResponseDto toTaskResponseDto(Task task) {
-        return new TaskResponseDto(task.getId(), task.getTitle(), task.getDescription(), task.isCompleted());
-    }
 
-    private Task toTask(TaskRequestDto taskRequestDto) {
-        Task task = new Task();
-        task.setTitle(taskRequestDto.title());
-        task.setDescription(taskRequestDto.description());
-        task.setCompleted(taskRequestDto.completed());
-        return task;
-    }
+
+
 
 
 }
