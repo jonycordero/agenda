@@ -21,10 +21,29 @@ public class TaskController {
         return taskService.findAll();
     }
 
+    @GetMapping("/{id}")
+    public TaskResponseDto getTaskById(@PathVariable Long id) {
+        return taskService.findById(id).orElseThrow(() -> new RuntimeException("Task not found"));
+    }
+
     @PostMapping
     public TaskResponseDto createTask(@RequestBody TaskRequestDto task) {
         return taskService.save(task);
     }
 
+    @PutMapping("/{id}")
+    public TaskResponseDto updateTask(@PathVariable Long id, @RequestBody TaskRequestDto task) {
+        return taskService.updateTask(id, task);
+    }
+
+    @PatchMapping("/{id}")
+    public TaskResponseDto patchTask(@PathVariable Long id, @RequestBody TaskRequestDto task) {
+        return taskService.patchTask(id, task);
+    }
+
+    @DeleteMapping("/{id}")
+    public void deleteTask(@PathVariable Long id) {
+        taskService.delete(id);
+    }
 
 }
